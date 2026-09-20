@@ -1,3 +1,7 @@
+/* -------------------------------- */
+/* COURSE TABS */
+/* -------------------------------- */
+
 .course-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -12,6 +16,7 @@
   border: 2px solid #d5ddd7;
   font-weight: bold;
   cursor: pointer;
+  border-radius: 8px;
 }
 
 .course-tab:hover {
@@ -25,6 +30,10 @@
 }
 
 
+/* -------------------------------- */
+/* LEADERBOARD HEADER */
+/* -------------------------------- */
+
 .leaderboard-title {
   margin-bottom: 5px;
 }
@@ -34,68 +43,287 @@
   margin-top: 0;
 }
 
+.sort-help {
+  margin-top: 15px;
+  padding: 10px;
+  background: #f3f5f2;
+  border-radius: 6px;
+  color: #666;
+  font-size: 13px;
+  text-align: center;
+}
+
+
+/* -------------------------------- */
+/* SCORECARD WRAPPER */
+/* -------------------------------- */
 
 .leaderboard-table-wrapper {
   overflow-x: auto;
   margin-top: 20px;
+  border: 1px solid #d5ddd7;
+  border-radius: 8px;
 }
 
+
+/* -------------------------------- */
+/* LEADERBOARD TABLE */
+/* -------------------------------- */
 
 .leaderboard-table {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 650px;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 1450px;
+  background: white;
 }
 
+
+/* -------------------------------- */
+/* SORTABLE HEADERS */
+/* -------------------------------- */
 
 .leaderboard-table th {
   background: #1f4d32;
   color: white;
-  padding: 12px 8px;
-  text-align: left;
+  padding: 10px 7px;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 13px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
+.leaderboard-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.leaderboard-table th.sortable:hover {
+  background: #163a26;
+}
+
+.sort-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 11px;
+}
+
+
+/* -------------------------------- */
+/* TABLE CELLS */
+/* -------------------------------- */
 
 .leaderboard-table td {
-  padding: 12px 8px;
+  padding: 9px 6px;
   border-bottom: 1px solid #ddd;
+  text-align: center;
+  white-space: nowrap;
 }
 
+.leaderboard-table tbody tr:hover {
+  background: #eef5ef;
+}
 
 .leaderboard-table tr:nth-child(even) {
   background: #f7f9f7;
 }
 
-
-.leaderboard-table tr:first-child td {
-  font-weight: bold;
+.leaderboard-table tr:nth-child(even):hover {
+  background: #eef5ef;
 }
 
+
+/* -------------------------------- */
+/* PLAYER / DATE */
+/* -------------------------------- */
+
+.player-cell {
+  text-align: left !important;
+  font-weight: bold;
+  min-width: 130px;
+}
+
+.date-cell {
+  min-width: 85px;
+}
+
+
+/* -------------------------------- */
+/* PLACE */
+/* -------------------------------- */
 
 .position {
   font-weight: bold;
-  text-align: center;
+  width: 50px;
 }
 
+
+/* -------------------------------- */
+/* HANDICAP */
+/* -------------------------------- */
+
+.handicap-cell {
+  font-weight: bold;
+}
+
+
+/* -------------------------------- */
+/* FRONT / BACK TOTALS */
+/* -------------------------------- */
+
+.front-total,
+.back-total {
+  background: #eef3ef;
+  font-weight: bold;
+  border-left: 2px solid #c8d3ca;
+  border-right: 2px solid #c8d3ca;
+}
+
+
+/* -------------------------------- */
+/* GROSS + NET */
+/* -------------------------------- */
+
+.gross-score {
+  font-weight: bold;
+  background: #f0f2f0;
+  border-left: 2px solid #bfc9c1;
+}
 
 .net-score {
   font-weight: bold;
   font-size: 18px;
+  background: #e3eee5;
+  border-left: 2px solid #9caf9f;
 }
 
 
-.gross-score,
-.course-handicap,
-.net-score {
-  text-align: center;
+/* -------------------------------- */
+/* HOLE SCORES */
+/* -------------------------------- */
+
+.hole-score {
+  min-width: 38px;
+  width: 38px;
+  font-weight: bold;
 }
 
+
+/* -------------------------------- */
+/* GOLF SCORE SYMBOLS */
+/* -------------------------------- */
+
+/*
+  Normal par:
+  4
+
+  Birdie:
+  (3)
+
+  Eagle:
+  ((2))
+
+  Bogey:
+  [5]
+
+  Double bogey:
+  [[6]]
+
+  Triple bogey:
+  [[[7]]]
+*/
+
+
+.score-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-width: 28px;
+  min-height: 28px;
+  line-height: 1;
+}
+
+
+/* Birdie = circle */
+
+.score-birdie {
+  border: 2px solid #1f2d24;
+  border-radius: 50%;
+}
+
+
+/* Eagle = double circle */
+
+.score-eagle {
+  border: 2px solid #1f2d24;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.score-eagle::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid #1f2d24;
+  border-radius: 50%;
+}
+
+
+/* Bogey = square */
+
+.score-bogey {
+  border: 2px solid #1f2d24;
+}
+
+
+/* Double bogey = double square */
+
+.score-double-bogey {
+  border: 2px solid #1f2d24;
+  padding: 2px;
+}
+
+.score-double-bogey::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid #1f2d24;
+}
+
+
+/* Triple bogey and worse */
+
+.score-triple-bogey {
+  border: 2px solid #1f2d24;
+  padding: 2px;
+}
+
+.score-triple-bogey::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid #1f2d24;
+}
+
+.score-triple-bogey::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid #1f2d24;
+}
+
+
+/* -------------------------------- */
+/* LOADING / EMPTY STATE */
+/* -------------------------------- */
 
 .loading {
   text-align: center;
   padding: 30px;
 }
-
 
 .no-rounds {
   text-align: center;
@@ -103,6 +331,10 @@
   color: #666;
 }
 
+
+/* -------------------------------- */
+/* BACK BUTTON */
+/* -------------------------------- */
 
 .back-button {
   display: block;
@@ -116,16 +348,23 @@
   font-weight: bold;
 }
 
-
 .back-button:hover {
   background: #163a26;
 }
 
 
+/* -------------------------------- */
+/* MOBILE */
+/* -------------------------------- */
+
 @media (max-width: 600px) {
 
   .course-tabs {
     grid-template-columns: 1fr;
+  }
+
+  .leaderboard-table {
+    min-width: 1450px;
   }
 
 }
