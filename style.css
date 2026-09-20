@@ -113,3 +113,11 @@ button:hover {
 h2 {
   margin-top: 0;
 }
+
+.field-label {
+  margin-top: 18px;
+}
+
+input[type="date"] {
+  background: white;
+}
