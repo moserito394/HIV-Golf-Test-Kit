@@ -5,6 +5,7 @@ async function supabaseRequest(table, query = "") {
   const response = await fetch(
     `${SUPABASE_URL}/rest/v1/${table}${query}`,
     {
+      method: "GET",
       headers: {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
@@ -13,34 +14,122 @@ async function supabaseRequest(table, query = "") {
     }
   );
 
+  const text = await response.text();
+
   if (!response.ok) {
-    throw new Error(await response.text());
+    throw new Error(
+      `Supabase error ${response.status}: ${text}`
+    );
   }
 
-  return response.json();
+  return text ? JSON.parse(text) : [];
 }
 
+
+// -------------------------
+// LOAD COURSES
+// -------------------------
+
 async function loadCourses() {
+  const courseSelect = document.getElementById("course");
+
   try {
     const courses = await supabaseRequest(
       "courses",
       "?active=eq.true&select=id,name,city,state,par&order=name"
     );
 
-    const courseSelect = document.getElementById("course");
+    courseSelect.innerHTML =
+      '<option value="">Select a course</option>';
 
     courses.forEach(course => {
       const option = document.createElement("option");
 
       option.value = course.id;
-      option.textContent = `${course.name} — Par ${course.par}`;
+      option.textContent =
+        `${course.name} — Par ${course.par}`;
 
       courseSelect.appendChild(option);
     });
 
   } catch (error) {
     console.error("Could not load courses:", error);
+
+    courseSelect.innerHTML =
+      '<option value="">Error loading courses</option>';
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadCourses);
+
+// -------------------------
+// LOAD TEES
+// -------------------------
+
+async function loadTees(courseId) {
+  const teeSelect = document.getElementById("tee");
+
+  teeSelect.innerHTML =
+    '<option value="">Loading tees...</option>';
+
+  if (!courseId) {
+    teeSelect.innerHTML =
+      '<option value="">Select a course first</option>';
+
+    return;
+  }
+
+  try {
+    const tees = await supabaseRequest(
+      "tees",
+      `?course_id=eq.${courseId}&select=id,name,gender,yards,course_rating,slope&order=name`
+    );
+
+    teeSelect.innerHTML =
+      '<option value="">Select a tee</option>';
+
+    tees.forEach(tee => {
+      const option = document.createElement("option");
+
+      option.value = tee.id;
+
+      let text = `${tee.name} — ${tee.yards} yards`;
+
+      if (tee.course_rating && tee.slope) {
+        text += ` (${tee.course_rating}/${tee.slope})`;
+      }
+
+      option.textContent = text;
+
+      teeSelect.appendChild(option);
+    });
+
+    if (tees.length === 0) {
+      teeSelect.innerHTML =
+        '<option value="">No tees found</option>';
+    }
+
+  } catch (error) {
+    console.error("Could not load tees:", error);
+
+    teeSelect.innerHTML =
+      '<option value="">Error loading tees</option>';
+  }
+}
+
+
+// -------------------------
+// START APP
+// -------------------------
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  loadCourses();
+
+  const courseSelect =
+    document.getElementById("course");
+
+  courseSelect.addEventListener("change", () => {
+    loadTees(courseSelect.value);
+  });
+
+});
