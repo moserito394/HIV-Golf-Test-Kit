@@ -130,8 +130,8 @@ async function loadTees(courseId) {
         `${tee.name} — ${tee.yards} yards`;
 
       if (
-        tee.course_rating &&
-        tee.slope
+        tee.course_rating !== null &&
+        tee.slope !== null
       ) {
 
         text +=
@@ -154,6 +154,82 @@ async function loadTees(courseId) {
     teeSelect.innerHTML =
       '<option value="">Error loading tees</option>';
   }
+}
+
+
+// -------------------------
+// CALCULATE WHS COURSE HANDICAP
+// -------------------------
+
+function calculateCourseHandicap(
+  handicapIndex,
+  slope,
+  courseRating,
+  par
+) {
+
+  if (
+    isNaN(handicapIndex) ||
+    isNaN(slope) ||
+    isNaN(courseRating) ||
+    isNaN(par)
+  ) {
+
+    return null;
+  }
+
+
+  // WHS formula:
+  //
+  // Course Handicap =
+  // Handicap Index × (Slope / 113)
+  // + (Course Rating - Par)
+
+  const courseHandicap =
+    handicapIndex *
+      (slope / 113) +
+    (courseRating - par);
+
+
+  return courseHandicap;
+}
+
+
+// -------------------------
+// GET SELECTED TEE
+// -------------------------
+
+async function getSelectedTee(teeId) {
+
+  const tees = await supabaseRequest(
+    "tees",
+    `?id=eq.${teeId}&select=id,name,course_id,course_rating,slope`
+  );
+
+  if (tees.length === 0) {
+    throw new Error("Selected tee could not be found.");
+  }
+
+  return tees[0];
+}
+
+
+// -------------------------
+// GET COURSE
+// -------------------------
+
+async function getCourse(courseId) {
+
+  const courses = await supabaseRequest(
+    "courses",
+    `?id=eq.${courseId}&select=id,name,par`
+  );
+
+  if (courses.length === 0) {
+    throw new Error("Selected course could not be found.");
+  }
+
+  return courses[0];
 }
 
 
@@ -262,6 +338,13 @@ async function loadScorecard(courseId, teeId) {
 
         <div>
           <strong>
+            Course Handicap:
+            <span id="courseHandicap">-</span>
+          </strong>
+        </div>
+
+        <div>
+          <strong>
             Net Score:
             <span id="netScore">-</span>
           </strong>
@@ -284,8 +367,10 @@ async function loadScorecard(courseId, teeId) {
 
       });
 
-    // Calculate totals immediately
+
+    // Recalculate when scorecard loads
     updateTotal();
+
 
   } catch (error) {
 
@@ -301,10 +386,10 @@ async function loadScorecard(courseId, teeId) {
 
 
 // -------------------------
-// CALCULATE GROSS + NET SCORE
+// CALCULATE GROSS + WHS NET
 // -------------------------
 
-function updateTotal() {
+async function updateTotal() {
 
   let total = 0;
 
@@ -335,39 +420,161 @@ function updateTotal() {
 
 
   // -------------------------
-  // NET SCORE
+  // GET HANDICAP
   // -------------------------
 
   const handicapInput =
     document.getElementById("handicap");
 
+  const handicap =
+    parseFloat(
+      handicapInput?.value
+    );
+
+
   const netElement =
     document.getElementById("netScore");
 
+  const courseHandicapElement =
+    document.getElementById("courseHandicap");
+
+
+  // If there is no handicap yet,
+  // clear the handicap calculations.
 
   if (
-    handicapInput &&
-    netElement &&
-    handicapInput.value !== ""
+    isNaN(handicap) ||
+    handicap < 0 ||
+    handicap > 54
   ) {
 
-    const handicap =
-      parseFloat(handicapInput.value);
+    if (courseHandicapElement) {
+      courseHandicapElement.textContent = "-";
+    }
 
-    if (!isNaN(handicap)) {
+    if (netElement) {
+      netElement.textContent = "-";
+    }
 
-      const netScore =
-        total - handicap;
+    return;
+  }
 
-      netElement.textContent =
-        netScore.toFixed(1);
+
+  // -------------------------
+  // GET COURSE + TEE
+  // -------------------------
+
+  const courseId =
+    document.getElementById("course")?.value;
+
+  const teeId =
+    document.getElementById("tee")?.value;
+
+
+  if (!courseId || !teeId) {
+
+    if (courseHandicapElement) {
+      courseHandicapElement.textContent = "-";
+    }
+
+    if (netElement) {
+      netElement.textContent = "-";
+    }
+
+    return;
+  }
+
+
+  try {
+
+    const [course, tee] =
+      await Promise.all([
+        getCourse(courseId),
+        getSelectedTee(teeId)
+      ]);
+
+
+    // -------------------------
+    // CALCULATE COURSE HANDICAP
+    // -------------------------
+
+    const calculatedCourseHandicap =
+      calculateCourseHandicap(
+        handicap,
+        parseFloat(tee.slope),
+        parseFloat(tee.course_rating),
+        parseFloat(course.par)
+      );
+
+
+    if (calculatedCourseHandicap === null) {
+
+      if (courseHandicapElement) {
+        courseHandicapElement.textContent = "-";
+      }
+
+      if (netElement) {
+        netElement.textContent = "-";
+      }
+
+      return;
+    }
+
+
+    // WHS retains the unrounded Course Handicap
+    // until the appropriate rounding step.
+    //
+    // For our 100% allowance competition,
+    // the Playing Handicap is the Course Handicap
+    // rounded to the nearest whole number.
+
+    const playingHandicap =
+      Math.floor(
+        calculatedCourseHandicap + 0.5
+      );
+
+
+    // -------------------------
+    // DISPLAY COURSE HANDICAP
+    // -------------------------
+
+    if (courseHandicapElement) {
+
+      courseHandicapElement.textContent =
+        playingHandicap;
 
     }
 
-  } else if (netElement) {
 
-    netElement.textContent =
-      "-";
+    // -------------------------
+    // CALCULATE NET SCORE
+    // -------------------------
+
+    if (netElement) {
+
+      const netScore =
+        total - playingHandicap;
+
+      netElement.textContent =
+        netScore;
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not calculate handicap:",
+      error
+    );
+
+    if (courseHandicapElement) {
+      courseHandicapElement.textContent = "-";
+    }
+
+    if (netElement) {
+      netElement.textContent = "-";
+    }
 
   }
 }
@@ -534,7 +741,7 @@ async function submitRound() {
 
 
   // -------------------------
-  // CALCULATE TOTALS
+  // CALCULATE GROSS SCORE
   // -------------------------
 
   const grossScore =
@@ -545,13 +752,101 @@ async function submitRound() {
     );
 
 
-  const netScore =
-    grossScore - handicap;
+  // -------------------------
+  // GET COURSE + TEE DATA
+  // -------------------------
+
+  let course;
+  let tee;
+  let courseHandicap;
+  let playingHandicap;
+  let netScore;
 
 
-  console.log("Gross Score:", grossScore);
-  console.log("Handicap:", handicap);
-  console.log("Net Score:", netScore);
+  try {
+
+    [course, tee] =
+      await Promise.all([
+        getCourse(courseId),
+        getSelectedTee(teeId)
+      ]);
+
+
+    // -------------------------
+    // WHS COURSE HANDICAP
+    // -------------------------
+
+    courseHandicap =
+      calculateCourseHandicap(
+        handicap,
+        parseFloat(tee.slope),
+        parseFloat(tee.course_rating),
+        parseFloat(course.par)
+      );
+
+
+    if (courseHandicap === null) {
+
+      message.textContent =
+        "Could not calculate your course handicap.";
+
+      return;
+    }
+
+
+    // 100% handicap allowance
+    playingHandicap =
+      Math.floor(
+        courseHandicap + 0.5
+      );
+
+
+    // -------------------------
+    // NET SCORE
+    // -------------------------
+
+    netScore =
+      grossScore - playingHandicap;
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not calculate WHS handicap:",
+      error
+    );
+
+    message.textContent =
+      "Could not calculate your handicap.";
+
+    return;
+  }
+
+
+  console.log(
+    "Handicap Index:",
+    handicap
+  );
+
+  console.log(
+    "Course Handicap:",
+    courseHandicap
+  );
+
+  console.log(
+    "Playing Handicap:",
+    playingHandicap
+  );
+
+  console.log(
+    "Gross Score:",
+    grossScore
+  );
+
+  console.log(
+    "Net Score:",
+    netScore
+  );
 
 
   message.textContent =
@@ -658,7 +953,7 @@ async function submitRound() {
     // -------------------------
 
     message.textContent =
-      `✅ Round submitted successfully! Gross: ${grossScore} | Net: ${netScore.toFixed(1)}`;
+      `✅ Round submitted! Gross: ${grossScore} | Course Handicap: ${playingHandicap} | Net: ${netScore}`;
 
 
   } catch (error) {
@@ -712,7 +1007,7 @@ document.addEventListener(
 
 
     // -------------------------
-    // GET FORM ELEMENTS
+    // FORM ELEMENTS
     // -------------------------
 
     const courseSelect =
