@@ -1,6 +1,15 @@
-/* -------------------------------- */
-/* COURSE TABS */
-/* -------------------------------- */
+/* ========================================
+   LEADERBOARD LAYOUT
+   ======================================== */
+
+body:has(.course-tabs) .container {
+  max-width: 1600px;
+}
+
+
+/* ========================================
+   COURSE TABS
+   ======================================== */
 
 .course-tabs {
   display: grid;
@@ -30,9 +39,9 @@
 }
 
 
-/* -------------------------------- */
-/* LEADERBOARD HEADER */
-/* -------------------------------- */
+/* ========================================
+   LEADERBOARD HEADER
+   ======================================== */
 
 .leaderboard-title {
   margin-bottom: 5px;
@@ -43,57 +52,48 @@
   margin-top: 0;
 }
 
-.sort-help {
-  margin-top: 15px;
-  padding: 10px;
-  background: #f3f5f2;
-  border-radius: 6px;
-  color: #666;
-  font-size: 13px;
-  text-align: center;
-}
 
-
-/* -------------------------------- */
-/* SCORECARD WRAPPER */
-/* -------------------------------- */
+/* ========================================
+   TABLE WRAPPER
+   ======================================== */
 
 .leaderboard-table-wrapper {
+  width: 100%;
   overflow-x: auto;
   margin-top: 20px;
-  border: 1px solid #d5ddd7;
-  border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
 }
 
 
-/* -------------------------------- */
-/* LEADERBOARD TABLE */
-/* -------------------------------- */
+/* ========================================
+   LEADERBOARD TABLE
+   ======================================== */
 
 .leaderboard-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 1450px;
-  background: white;
+
+  min-width: 1250px;
+  table-layout: auto;
 }
 
 
-/* -------------------------------- */
-/* SORTABLE HEADERS */
-/* -------------------------------- */
+/* ========================================
+   TABLE HEADERS
+   ======================================== */
 
 .leaderboard-table th {
   background: #1f4d32;
   color: white;
-  padding: 10px 7px;
+  padding: 10px 6px;
   text-align: center;
   white-space: nowrap;
-  font-size: 13px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  font-size: 14px;
 }
+
+
+/* Sortable headers */
 
 .leaderboard-table th.sortable {
   cursor: pointer;
@@ -106,168 +106,222 @@
 
 .sort-arrow {
   display: inline-block;
-  margin-left: 4px;
-  font-size: 11px;
+  margin-left: 3px;
+  font-size: 10px;
+  opacity: 0.8;
 }
 
 
-/* -------------------------------- */
-/* TABLE CELLS */
-/* -------------------------------- */
+/* ========================================
+   TABLE CELLS
+   ======================================== */
 
 .leaderboard-table td {
-  padding: 9px 6px;
+  padding: 9px 5px;
   border-bottom: 1px solid #ddd;
   text-align: center;
   white-space: nowrap;
 }
 
-.leaderboard-table tbody tr:hover {
-  background: #eef5ef;
-}
-
-.leaderboard-table tr:nth-child(even) {
+.leaderboard-table tbody tr:nth-child(even) {
   background: #f7f9f7;
 }
 
-.leaderboard-table tr:nth-child(even):hover {
-  background: #eef5ef;
+.leaderboard-table tbody tr:hover {
+  background: #eef3ef;
 }
 
 
-/* -------------------------------- */
-/* PLAYER / DATE */
-/* -------------------------------- */
+/* ========================================
+   STICKY COLUMNS
+   ======================================== */
+
+/*
+   These four columns stay visible while
+   scrolling horizontally:
+
+   # | Player | Date | HCP
+*/
+
+
+/* Place */
+
+.leaderboard-table th:nth-child(1),
+.leaderboard-table td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+}
+
+
+/* Player */
+
+.leaderboard-table th:nth-child(2),
+.leaderboard-table td:nth-child(2) {
+  position: sticky;
+  left: 40px;
+  z-index: 5;
+  width: 130px;
+  min-width: 130px;
+}
+
+
+/* Date */
+
+.leaderboard-table th:nth-child(3),
+.leaderboard-table td:nth-child(3) {
+  position: sticky;
+  left: 170px;
+  z-index: 5;
+  width: 90px;
+  min-width: 90px;
+}
+
+
+/* Handicap */
+
+.leaderboard-table th:nth-child(4),
+.leaderboard-table td:nth-child(4) {
+  position: sticky;
+  left: 260px;
+  z-index: 5;
+  width: 55px;
+  min-width: 55px;
+}
+
+
+/*
+   Give sticky cells an opaque background
+   so scrolling columns don't show through.
+*/
+
+.leaderboard-table tbody td:nth-child(1),
+.leaderboard-table tbody td:nth-child(2),
+.leaderboard-table tbody td:nth-child(3),
+.leaderboard-table tbody td:nth-child(4) {
+  background: white;
+}
+
+
+/* Keep alternating row colors on sticky cells */
+
+.leaderboard-table tbody tr:nth-child(even) td:nth-child(1),
+.leaderboard-table tbody tr:nth-child(even) td:nth-child(2),
+.leaderboard-table tbody tr:nth-child(even) td:nth-child(3),
+.leaderboard-table tbody tr:nth-child(even) td:nth-child(4) {
+  background: #f7f9f7;
+}
+
+
+/* Keep hover effect on sticky cells */
+
+.leaderboard-table tbody tr:hover td:nth-child(1),
+.leaderboard-table tbody tr:hover td:nth-child(2),
+.leaderboard-table tbody tr:hover td:nth-child(3),
+.leaderboard-table tbody tr:hover td:nth-child(4) {
+  background: #eef3ef;
+}
+
+
+/*
+   Make the right edge of the sticky section
+   visually obvious.
+*/
+
+.leaderboard-table th:nth-child(4),
+.leaderboard-table td:nth-child(4) {
+  border-right: 3px solid #1f4d32;
+}
+
+
+/*
+   Sticky header needs to sit above everything.
+*/
+
+.leaderboard-table thead th:nth-child(1),
+.leaderboard-table thead th:nth-child(2),
+.leaderboard-table thead th:nth-child(3),
+.leaderboard-table thead th:nth-child(4) {
+  z-index: 10;
+}
+
+
+/* ========================================
+   PLAYER / DATE / HANDICAP
+   ======================================== */
 
 .player-cell {
   text-align: left !important;
   font-weight: bold;
-  min-width: 130px;
 }
 
 .date-cell {
-  min-width: 85px;
+  text-align: center !important;
+}
+
+.handicap-cell {
+  text-align: center !important;
 }
 
 
-/* -------------------------------- */
-/* PLACE */
-/* -------------------------------- */
+/* ========================================
+   PLACE
+   ======================================== */
 
 .position {
   font-weight: bold;
-  width: 50px;
+  text-align: center;
 }
 
 
-/* -------------------------------- */
-/* HANDICAP */
-/* -------------------------------- */
-
-.handicap-cell {
-  font-weight: bold;
-}
-
-
-/* -------------------------------- */
-/* FRONT / BACK TOTALS */
-/* -------------------------------- */
-
-.front-total,
-.back-total {
-  background: #eef3ef;
-  font-weight: bold;
-  border-left: 2px solid #c8d3ca;
-  border-right: 2px solid #c8d3ca;
-}
-
-
-/* -------------------------------- */
-/* GROSS + NET */
-/* -------------------------------- */
-
-.gross-score {
-  font-weight: bold;
-  background: #f0f2f0;
-  border-left: 2px solid #bfc9c1;
-}
-
-.net-score {
-  font-weight: bold;
-  font-size: 18px;
-  background: #e3eee5;
-  border-left: 2px solid #9caf9f;
-}
-
-
-/* -------------------------------- */
-/* HOLE SCORES */
-/* -------------------------------- */
+/* ========================================
+   HOLE SCORES
+   ======================================== */
 
 .hole-score {
-  min-width: 38px;
   width: 38px;
-  font-weight: bold;
+  min-width: 38px;
+  max-width: 38px;
+  text-align: center;
+  padding-left: 2px !important;
+  padding-right: 2px !important;
 }
 
 
-/* -------------------------------- */
-/* GOLF SCORE SYMBOLS */
-/* -------------------------------- */
+/* ========================================
+   GOLF SCORE SYMBOLS
+   ======================================== */
 
-/*
-  Normal par:
-  4
-
-  Birdie:
-  (3)
-
-  Eagle:
-  ((2))
-
-  Bogey:
-  [5]
-
-  Double bogey:
-  [[6]]
-
-  Triple bogey:
-  [[[7]]]
-*/
-
+/* Base score number */
 
 .score-symbol {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  width: 30px;
+  height: 30px;
+
+  font-weight: bold;
   position: relative;
-  min-width: 28px;
-  min-height: 28px;
-  line-height: 1;
 }
 
 
 /* Birdie = circle */
 
 .score-birdie {
-  border: 2px solid #1f2d24;
+  border: 2px solid #1f4d32;
   border-radius: 50%;
 }
 
 
-/* Eagle = double circle */
+/* Eagle or better = double circle */
 
 .score-eagle {
-  border: 2px solid #1f2d24;
-  border-radius: 50%;
-  padding: 2px;
-}
-
-.score-eagle::after {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border: 1px solid #1f2d24;
+  border: 3px double #1f4d32;
   border-radius: 50%;
 }
 
@@ -275,50 +329,63 @@
 /* Bogey = square */
 
 .score-bogey {
-  border: 2px solid #1f2d24;
+  border: 2px solid #8b0000;
 }
 
 
 /* Double bogey = double square */
 
 .score-double-bogey {
-  border: 2px solid #1f2d24;
-  padding: 2px;
-}
-
-.score-double-bogey::after {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border: 1px solid #1f2d24;
+  border: 3px double #8b0000;
 }
 
 
-/* Triple bogey and worse */
+/* Triple bogey or worse */
 
 .score-triple-bogey {
-  border: 2px solid #1f2d24;
-  padding: 2px;
-}
-
-.score-triple-bogey::before {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border: 1px solid #1f2d24;
-}
-
-.score-triple-bogey::after {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border: 1px solid #1f2d24;
+  border: 3px double #8b0000;
+  outline: 1px solid #8b0000;
+  outline-offset: 2px;
 }
 
 
-/* -------------------------------- */
-/* LOADING / EMPTY STATE */
-/* -------------------------------- */
+/* ========================================
+   NINE-HOLE TOTALS
+   ======================================== */
+
+.front-total,
+.back-total {
+  font-weight: bold;
+  background: #eef3ef;
+  border-left: 2px solid #c7d2ca;
+  border-right: 2px solid #c7d2ca;
+  min-width: 48px;
+}
+
+
+/* ========================================
+   GROSS / NET
+   ======================================== */
+
+.gross-score {
+  font-weight: bold;
+  font-size: 16px;
+  min-width: 55px;
+  border-left: 2px solid #c7d2ca;
+}
+
+.net-score {
+  font-weight: bold;
+  font-size: 19px;
+  min-width: 55px;
+  background: #e4eee6;
+  border-left: 3px solid #1f4d32;
+}
+
+
+/* ========================================
+   LOADING / EMPTY STATE
+   ======================================== */
 
 .loading {
   text-align: center;
@@ -332,9 +399,9 @@
 }
 
 
-/* -------------------------------- */
-/* BACK BUTTON */
-/* -------------------------------- */
+/* ========================================
+   BACK BUTTON
+   ======================================== */
 
 .back-button {
   display: block;
@@ -353,18 +420,22 @@
 }
 
 
-/* -------------------------------- */
-/* MOBILE */
-/* -------------------------------- */
+/* ========================================
+   MOBILE
+   ======================================== */
 
-@media (max-width: 600px) {
+@media (max-width: 900px) {
+
+  body:has(.course-tabs) .container {
+    max-width: 100%;
+  }
 
   .course-tabs {
     grid-template-columns: 1fr;
   }
 
   .leaderboard-table {
-    min-width: 1450px;
+    min-width: 1250px;
   }
 
 }
