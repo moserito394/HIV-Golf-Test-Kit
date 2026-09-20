@@ -253,18 +253,25 @@ async function loadScorecard(courseId, teeId) {
 
       <div class="score-total">
 
-        <strong>
-          Total Score:
-          <span id="totalScore">0</span>
-        </strong>
+        <div>
+          <strong>
+            Gross Score:
+            <span id="totalScore">0</span>
+          </strong>
+        </div>
+
+        <div>
+          <strong>
+            Net Score:
+            <span id="netScore">-</span>
+          </strong>
+        </div>
 
       </div>
     `;
 
     scorecard.innerHTML = html;
 
-
-    // Update total whenever a score changes
 
     document
       .querySelectorAll(".score-input")
@@ -276,6 +283,9 @@ async function loadScorecard(courseId, teeId) {
         );
 
       });
+
+    // Calculate totals immediately
+    updateTotal();
 
   } catch (error) {
 
@@ -291,7 +301,7 @@ async function loadScorecard(courseId, teeId) {
 
 
 // -------------------------
-// CALCULATE TOTAL
+// CALCULATE GROSS + NET SCORE
 // -------------------------
 
 function updateTotal() {
@@ -311,11 +321,54 @@ function updateTotal() {
 
     });
 
+
+  // -------------------------
+  // GROSS SCORE
+  // -------------------------
+
   const totalElement =
     document.getElementById("totalScore");
 
   if (totalElement) {
     totalElement.textContent = total;
+  }
+
+
+  // -------------------------
+  // NET SCORE
+  // -------------------------
+
+  const handicapInput =
+    document.getElementById("handicap");
+
+  const netElement =
+    document.getElementById("netScore");
+
+
+  if (
+    handicapInput &&
+    netElement &&
+    handicapInput.value !== ""
+  ) {
+
+    const handicap =
+      parseFloat(handicapInput.value);
+
+    if (!isNaN(handicap)) {
+
+      const netScore =
+        total - handicap;
+
+      netElement.textContent =
+        netScore.toFixed(1);
+
+    }
+
+  } else if (netElement) {
+
+    netElement.textContent =
+      "-";
+
   }
 }
 
@@ -332,15 +385,41 @@ async function submitRound() {
       .value
       .trim();
 
+
+  const handicap =
+    parseFloat(
+      document
+        .getElementById("handicap")
+        .value
+    );
+
+
+  const roundDate =
+    document
+      .getElementById("roundDate")
+      .value;
+
+
   const courseId =
-    document.getElementById("course").value;
+    document
+      .getElementById("course")
+      .value;
+
 
   const teeId =
-    document.getElementById("tee").value;
+    document
+      .getElementById("tee")
+      .value;
+
 
   const message =
-    document.getElementById("submitMessage");
+    document
+      .getElementById("submitMessage");
 
+
+  // -------------------------
+  // VALIDATE PLAYER
+  // -------------------------
 
   if (!playerName) {
 
@@ -350,6 +429,41 @@ async function submitRound() {
     return;
   }
 
+
+  // -------------------------
+  // VALIDATE HANDICAP
+  // -------------------------
+
+  if (
+    isNaN(handicap) ||
+    handicap < 0 ||
+    handicap > 54
+  ) {
+
+    message.textContent =
+      "Please enter a valid handicap.";
+
+    return;
+  }
+
+
+  // -------------------------
+  // VALIDATE DATE
+  // -------------------------
+
+  if (!roundDate) {
+
+    message.textContent =
+      "Please select the date of the round.";
+
+    return;
+  }
+
+
+  // -------------------------
+  // VALIDATE COURSE
+  // -------------------------
+
   if (!courseId) {
 
     message.textContent =
@@ -357,6 +471,11 @@ async function submitRound() {
 
     return;
   }
+
+
+  // -------------------------
+  // VALIDATE TEE
+  // -------------------------
 
   if (!teeId) {
 
@@ -366,6 +485,10 @@ async function submitRound() {
     return;
   }
 
+
+  // -------------------------
+  // GET SCORES
+  // -------------------------
 
   const scoreInputs =
     document.querySelectorAll(".score-input");
@@ -382,10 +505,12 @@ async function submitRound() {
 
   const scores = [];
 
+
   for (const input of scoreInputs) {
 
     const strokes =
       parseInt(input.value);
+
 
     if (
       isNaN(strokes) ||
@@ -399,6 +524,7 @@ async function submitRound() {
       return;
     }
 
+
     scores.push({
       hole_id: input.dataset.holeId,
       strokes
@@ -407,8 +533,36 @@ async function submitRound() {
   }
 
 
+  // -------------------------
+  // CALCULATE TOTALS
+  // -------------------------
+
+  const grossScore =
+    scores.reduce(
+      (total, score) =>
+        total + score.strokes,
+      0
+    );
+
+
+  const netScore =
+    grossScore - handicap;
+
+
+  console.log("Gross Score:", grossScore);
+  console.log("Handicap:", handicap);
+  console.log("Net Score:", netScore);
+
+
   message.textContent =
     "Submitting round...";
+
+
+  // Disable button while submitting
+  const submitButton =
+    document.getElementById("submitRound");
+
+  submitButton.disabled = true;
 
 
   try {
@@ -445,6 +599,7 @@ async function submitRound() {
           }
         );
 
+
       playerId =
         newPlayers[0].id;
 
@@ -464,10 +619,8 @@ async function submitRound() {
           player_id: playerId,
           course_id: courseId,
           tee_id: teeId,
-          played_at:
-            new Date()
-              .toISOString()
-              .split("T")[0]
+          handicap: handicap,
+          played_at: roundDate
         }
       );
 
@@ -482,9 +635,13 @@ async function submitRound() {
 
     const scoreRecords =
       scores.map(score => ({
+
         round_id: roundId,
+
         hole_id: score.hole_id,
+
         strokes: score.strokes
+
       }));
 
 
@@ -496,8 +653,13 @@ async function submitRound() {
     );
 
 
+    // -------------------------
+    // SUCCESS
+    // -------------------------
+
     message.textContent =
-      "✅ Round submitted successfully!";
+      `✅ Round submitted successfully! Gross: ${grossScore} | Net: ${netScore.toFixed(1)}`;
+
 
   } catch (error) {
 
@@ -506,8 +668,15 @@ async function submitRound() {
       error
     );
 
+
     message.textContent =
       `Error submitting round: ${error.message}`;
+
+
+  } finally {
+
+    submitButton.disabled = false;
+
   }
 }
 
@@ -520,20 +689,56 @@ document.addEventListener(
   "DOMContentLoaded",
   () => {
 
+
+    // -------------------------
+    // DEFAULT ROUND DATE
+    // -------------------------
+
+    const roundDate =
+      document.getElementById("roundDate");
+
+
+    roundDate.value =
+      new Date()
+        .toISOString()
+        .split("T")[0];
+
+
+    // -------------------------
+    // LOAD COURSES
+    // -------------------------
+
     loadCourses();
+
+
+    // -------------------------
+    // GET FORM ELEMENTS
+    // -------------------------
 
     const courseSelect =
       document.getElementById("course");
+
 
     const teeSelect =
       document.getElementById("tee");
 
 
+    const handicapInput =
+      document.getElementById("handicap");
+
+
+    // -------------------------
+    // COURSE CHANGE
+    // -------------------------
+
     courseSelect.addEventListener(
       "change",
       () => {
 
-        loadTees(courseSelect.value);
+        loadTees(
+          courseSelect.value
+        );
+
 
         document.getElementById(
           "scorecard"
@@ -543,6 +748,10 @@ document.addEventListener(
       }
     );
 
+
+    // -------------------------
+    // TEE CHANGE
+    // -------------------------
 
     teeSelect.addEventListener(
       "change",
@@ -556,6 +765,20 @@ document.addEventListener(
       }
     );
 
+
+    // -------------------------
+    // HANDICAP CHANGE
+    // -------------------------
+
+    handicapInput.addEventListener(
+      "input",
+      updateTotal
+    );
+
+
+    // -------------------------
+    // SUBMIT BUTTON
+    // -------------------------
 
     document
       .getElementById("submitRound")
