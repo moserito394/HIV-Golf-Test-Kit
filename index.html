@@ -20,7 +20,7 @@
 
     <!-- PLAYER -->
     <div class="card">
-      <h2>1. Your Name</h2>
+      <h2>1. Player Information</h2>
 
       <label for="playerName">Name</label>
 
@@ -29,8 +29,29 @@
         id="playerName"
         placeholder="Enter your name"
       >
-    </div>
 
+      <label for="handicap" class="field-label">
+        Handicap
+      </label>
+
+      <input
+        type="number"
+        id="handicap"
+        min="0"
+        max="54"
+        step="0.1"
+        placeholder="Enter your handicap"
+      >
+
+      <label for="roundDate" class="field-label">
+        Date of Round
+      </label>
+
+      <input
+        type="date"
+        id="roundDate"
+      >
+    </div>
 
     <!-- COURSE -->
     <div class="card">
@@ -43,7 +64,6 @@
       </select>
     </div>
 
-
     <!-- TEE -->
     <div class="card">
       <h2>3. Select Your Tee</h2>
@@ -55,10 +75,8 @@
       </select>
     </div>
 
-
     <!-- SCORECARD -->
     <div class="card">
-
       <h2>4. Enter Your Scores</h2>
 
       <div id="scorecard">
@@ -66,19 +84,15 @@
           Select a course and tee above to begin.
         </p>
       </div>
-
     </div>
-
 
     <!-- SUBMIT -->
     <div class="card">
-
       <button id="submitRound">
         Submit Round
       </button>
 
       <p id="submitMessage"></p>
-
     </div>
 
   </main>
