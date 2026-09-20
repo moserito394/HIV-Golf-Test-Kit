@@ -121,3 +121,20 @@ h2 {
 input[type="date"] {
   background: white;
 }
+
+.leaderboard-link {
+  display: block;
+  width: 100%;
+  margin-top: 15px;
+  padding: 12px;
+  background: #eef3ef;
+  color: #1f4d32;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.leaderboard-link:hover {
+  background: #dfe9e1;
+}
