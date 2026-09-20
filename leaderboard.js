@@ -1,10 +1,9 @@
 const SUPABASE_URL = "https://edhnlhbmmztvflpjhwga.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkaG5saGJtbXp0dmZscGpod2dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4NTc2MzAsImV4cCI6MjEwNTQzMzYzMH0.53CN7eiQ1q8-3KKQg6P0ckieVdKh-gQP4uiwn0ukSks";
 
-
-// -------------------------
+// --------------------------------
 // SUPABASE REQUEST
-// -------------------------
+// --------------------------------
 
 async function supabaseRequest(
   table,
@@ -44,9 +43,9 @@ async function supabaseRequest(
 }
 
 
-// -------------------------
-// LOAD COURSE
-// -------------------------
+// --------------------------------
+// GET COURSE
+// --------------------------------
 
 async function getCourse(courseId) {
 
@@ -70,9 +69,9 @@ async function getCourse(courseId) {
 }
 
 
-// -------------------------
-// LOAD ROUNDS
-// -------------------------
+// --------------------------------
+// LOAD LEADERBOARD
+// --------------------------------
 
 async function loadRounds(courseId) {
 
@@ -95,12 +94,49 @@ async function loadRounds(courseId) {
 
   try {
 
-    // Get course information
+    // --------------------------------
+    // COURSE
+    // --------------------------------
+
     const course =
       await getCourse(courseId);
 
 
-    // Get all rounds for this course
+    // --------------------------------
+    // HOLES
+    // --------------------------------
+
+    const holes =
+      await supabaseRequest(
+        "holes",
+        `?course_id=eq.${courseId}&select=id,hole_number,par&order=hole_number`
+      );
+
+
+    if (holes.length !== 18) {
+
+      throw new Error(
+        "Could not find all 18 holes for this course."
+      );
+
+    }
+
+
+    // Create hole lookup
+    const holeMap = {};
+
+
+    holes.forEach(hole => {
+
+      holeMap[hole.id] = hole;
+
+    });
+
+
+    // --------------------------------
+    // ROUNDS
+    // --------------------------------
+
     const rounds =
       await supabaseRequest(
         "rounds",
@@ -108,10 +144,13 @@ async function loadRounds(courseId) {
       );
 
 
-    // Display course heading
+    // --------------------------------
+    // HEADER
+    // --------------------------------
+
     header.innerHTML = `
       <h2 class="leaderboard-title">
-        ${course.name}
+        ${escapeHtml(course.name)}
       </h2>
 
       <p class="leaderboard-subtitle">
@@ -120,7 +159,10 @@ async function loadRounds(courseId) {
     `;
 
 
-    // No rounds yet
+    // --------------------------------
+    // NO ROUNDS
+    // --------------------------------
+
     if (rounds.length === 0) {
 
       leaderboard.innerHTML =
@@ -132,9 +174,9 @@ async function loadRounds(courseId) {
     }
 
 
-    // -------------------------
-    // LOAD PLAYERS
-    // -------------------------
+    // --------------------------------
+    // PLAYERS
+    // --------------------------------
 
     const playerIds =
       [
@@ -164,9 +206,9 @@ async function loadRounds(courseId) {
     });
 
 
-    // -------------------------
-    // LOAD TEES
-    // -------------------------
+    // --------------------------------
+    // TEES
+    // --------------------------------
 
     const teeIds =
       [
@@ -196,9 +238,9 @@ async function loadRounds(courseId) {
     });
 
 
-    // -------------------------
-    // LOAD SCORES
-    // -------------------------
+    // --------------------------------
+    // SCORES
+    // --------------------------------
 
     const roundIds =
       rounds.map(
@@ -209,34 +251,39 @@ async function loadRounds(courseId) {
     const scores =
       await supabaseRequest(
         "scores",
-        `?round_id=in.(${roundIds.join(",")})&select=round_id,strokes`
+        `?round_id=in.(${roundIds.join(",")})&select=round_id,hole_id,strokes`
       );
 
 
-    // Calculate gross score for each round
-    const grossScores = {};
+    // --------------------------------
+    // GROUP SCORES BY ROUND
+    // --------------------------------
+
+    const scoresByRound = {};
 
 
     scores.forEach(score => {
 
       if (
-        !grossScores[score.round_id]
+        !scoresByRound[score.round_id]
       ) {
 
-        grossScores[score.round_id] = 0;
+        scoresByRound[score.round_id] = {};
 
       }
 
 
-      grossScores[score.round_id] +=
+      scoresByRound[score.round_id][
+        score.hole_id
+      ] =
         Number(score.strokes);
 
     });
 
 
-    // -------------------------
-    // CALCULATE LEADERBOARD
-    // -------------------------
+    // --------------------------------
+    // BUILD LEADERBOARD ROWS
+    // --------------------------------
 
     const leaderboardRows =
       rounds.map(round => {
@@ -245,9 +292,90 @@ async function loadRounds(courseId) {
           teeMap[round.tee_id];
 
 
-        const grossScore =
-          grossScores[round.id] || 0;
+        if (!tee) {
 
+          throw new Error(
+            `Tee not found for round ${round.id}.`
+          );
+
+        }
+
+
+        const roundScores =
+          scoresByRound[round.id] || {};
+
+
+        // --------------------------------
+        // HOLE SCORES
+        // --------------------------------
+
+        const holeScores = {};
+
+
+        holes.forEach(hole => {
+
+          holeScores[hole.hole_number] =
+            roundScores[hole.id] ?? null;
+
+        });
+
+
+        // --------------------------------
+        // FRONT 9
+        // --------------------------------
+
+        let frontNine = 0;
+
+        for (
+          let holeNumber = 1;
+          holeNumber <= 9;
+          holeNumber++
+        ) {
+
+          const score =
+            holeScores[holeNumber];
+
+          if (score !== null) {
+            frontNine += score;
+          }
+
+        }
+
+
+        // --------------------------------
+        // BACK 9
+        // --------------------------------
+
+        let backNine = 0;
+
+        for (
+          let holeNumber = 10;
+          holeNumber <= 18;
+          holeNumber++
+        ) {
+
+          const score =
+            holeScores[holeNumber];
+
+          if (score !== null) {
+            backNine += score;
+          }
+
+        }
+
+
+        // --------------------------------
+        // GROSS
+        // --------------------------------
+
+        const grossScore =
+          frontNine +
+          backNine;
+
+
+        // --------------------------------
+        // HANDICAP
+        // --------------------------------
 
         const handicapIndex =
           Number(round.handicap);
@@ -265,21 +393,30 @@ async function loadRounds(courseId) {
           Number(course.par);
 
 
-        // WHS Course Handicap
+        // --------------------------------
+        // WHS COURSE HANDICAP
+        // --------------------------------
+
         const courseHandicap =
           handicapIndex *
             (slope / 113) +
           (courseRating - par);
 
 
-        // 100% playing handicap
+        // --------------------------------
+        // PLAYING HANDICAP
+        // --------------------------------
+
         const playingHandicap =
           Math.floor(
             courseHandicap + 0.5
           );
 
 
-        // Net score
+        // --------------------------------
+        // NET
+        // --------------------------------
+
         const netScore =
           grossScore -
           playingHandicap;
@@ -294,9 +431,19 @@ async function loadRounds(courseId) {
             playerMap[round.player_id] ||
             "Unknown Player",
 
-          grossScore,
+          date:
+            round.played_at,
 
-          handicapIndex,
+          handicap:
+            handicapIndex,
+
+          holeScores,
+
+          frontNine,
+
+          backNine,
+
+          grossScore,
 
           courseHandicap:
             playingHandicap,
@@ -304,184 +451,422 @@ async function loadRounds(courseId) {
           netScore,
 
           tee:
-            tee.name,
-
-          date:
-            round.played_at
+            tee.name
 
         };
 
       });
 
 
-    // -------------------------
-    // SORT BY NET SCORE
-    // -------------------------
+    // --------------------------------
+    // DEFAULT SORT
+    // --------------------------------
 
-    leaderboardRows.sort(
-      (a, b) => {
+    let currentSort = {
+      key: "netScore",
+      direction: "asc"
+    };
 
-        if (
-          a.netScore !==
-          b.netScore
-        ) {
+
+    // --------------------------------
+    // RENDER FUNCTION
+    // --------------------------------
+
+    function renderLeaderboard() {
+
+      // Sort rows
+      leaderboardRows.sort(
+        (a, b) => {
+
+          const aValue =
+            getSortValue(
+              a,
+              currentSort.key
+            );
+
+
+          const bValue =
+            getSortValue(
+              b,
+              currentSort.key
+            );
+
+
+          if (
+            typeof aValue === "number" &&
+            typeof bValue === "number"
+          ) {
+
+            if (
+              aValue !==
+              bValue
+            ) {
+
+              return currentSort.direction === "asc"
+                ? aValue - bValue
+                : bValue - aValue;
+
+            }
+
+          } else {
+
+            const aString =
+              String(aValue);
+
+            const bString =
+              String(bValue);
+
+
+            if (
+              aString !==
+              bString
+            ) {
+
+              const comparison =
+                aString.localeCompare(
+                  bString
+                );
+
+              return currentSort.direction === "asc"
+                ? comparison
+                : -comparison;
+
+            }
+
+          }
+
+
+          // --------------------------------
+          // SECONDARY SORT
+          // --------------------------------
+
+          // When sorting by Net,
+          // lower gross breaks the tie.
+
+          if (
+            currentSort.key ===
+            "netScore"
+          ) {
+
+            if (
+              a.grossScore !==
+              b.grossScore
+            ) {
+
+              return (
+                a.grossScore -
+                b.grossScore
+              );
+
+            }
+
+          }
+
+
+          // Final tie-breaker:
+          // earlier date first.
 
           return (
-            a.netScore -
-            b.netScore
+            new Date(a.date) -
+            new Date(b.date)
           );
 
         }
+      );
 
 
-        // Same net score:
-        // lower gross score first
+      // --------------------------------
+      // BUILD TABLE
+      // --------------------------------
 
-        if (
-          a.grossScore !==
-          b.grossScore
-        ) {
+      let html = `
 
-          return (
-            a.grossScore -
-            b.grossScore
-          );
+        <div class="leaderboard-table-wrapper">
 
-        }
+          <table class="leaderboard-table">
+
+            <thead>
+
+              <tr>
+
+                ${sortableHeader(
+                  "#",
+                  "place",
+                  false
+                )}
+
+                ${sortableHeader(
+                  "Player",
+                  "player",
+                  true
+                )}
+
+                ${sortableHeader(
+                  "Date",
+                  "date",
+                  true
+                )}
+
+                ${sortableHeader(
+                  "HCP",
+                  "handicap",
+                  true
+                )}
+
+                ${holeHeaders(
+                  1,
+                  9
+                )}
+
+                ${sortableHeader(
+                  "F9",
+                  "frontNine",
+                  true,
+                  "front-total"
+                )}
+
+                ${holeHeaders(
+                  10,
+                  18
+                )}
+
+                ${sortableHeader(
+                  "B9",
+                  "backNine",
+                  true,
+                  "back-total"
+                )}
+
+                ${sortableHeader(
+                  "Gross",
+                  "grossScore",
+                  true,
+                  "gross-score"
+                )}
+
+                ${sortableHeader(
+                  "Net",
+                  "netScore",
+                  true,
+                  "net-score"
+                )}
+
+              </tr>
+
+            </thead>
 
 
-        // Same gross score:
-        // earlier round first
-
-        return (
-          new Date(a.date) -
-          new Date(b.date)
-        );
-
-      }
-    );
+            <tbody>
+      `;
 
 
-    // -------------------------
-    // BUILD TABLE
-    // -------------------------
+      let previousNet =
+        null;
 
-    let html = `
+      let previousGross =
+        null;
 
-      <div class="leaderboard-table-wrapper">
+      let place =
+        0;
 
-        <table class="leaderboard-table">
 
-          <thead>
+      leaderboardRows.forEach(
+        (row, index) => {
+
+          // --------------------------------
+          // PLACE
+          // --------------------------------
+
+          if (
+            row.netScore !==
+              previousNet ||
+            row.grossScore !==
+              previousGross
+          ) {
+
+            place =
+              index + 1;
+
+          }
+
+
+          html += `
 
             <tr>
 
-              <th>Place</th>
+              <td class="position">
+                ${place}
+              </td>
 
-              <th>Player</th>
+              <td class="player-cell">
+                ${escapeHtml(row.player)}
+              </td>
 
-              <th>Gross</th>
+              <td class="date-cell">
+                ${formatDate(row.date)}
+              </td>
 
-              <th>HCP</th>
+              <td class="handicap-cell">
+                ${formatHandicap(row.handicap)}
+              </td>
 
-              <th>Net</th>
+          `;
 
-              <th>Tee</th>
 
-              <th>Date</th>
+          // --------------------------------
+          // HOLES 1-9
+          // --------------------------------
+
+          for (
+            let holeNumber = 1;
+            holeNumber <= 9;
+            holeNumber++
+          ) {
+
+            html +=
+              renderHoleCell(
+                row,
+                holeNumber,
+                holeMap
+              );
+
+          }
+
+
+          // --------------------------------
+          // FRONT 9
+          // --------------------------------
+
+          html += `
+
+              <td class="front-total">
+                ${row.frontNine}
+              </td>
+
+          `;
+
+
+          // --------------------------------
+          // HOLES 10-18
+          // --------------------------------
+
+          for (
+            let holeNumber = 10;
+            holeNumber <= 18;
+            holeNumber++
+          ) {
+
+            html +=
+              renderHoleCell(
+                row,
+                holeNumber,
+                holeMap
+              );
+
+          }
+
+
+          // --------------------------------
+          // BACK 9
+          // --------------------------------
+
+          html += `
+
+              <td class="back-total">
+                ${row.backNine}
+              </td>
+
+
+              <td class="gross-score">
+                ${row.grossScore}
+              </td>
+
+
+              <td class="net-score">
+                ${row.netScore}
+              </td>
 
             </tr>
 
-          </thead>
-
-          <tbody>
-    `;
+          `;
 
 
-    let previousNet = null;
-    let previousGross = null;
-    let place = 0;
+          previousNet =
+            row.netScore;
 
-
-    leaderboardRows.forEach(
-      (row, index) => {
-
-        // Competition-style placing:
-        // identical net + gross = tie
-
-        if (
-          row.netScore !==
-            previousNet ||
-          row.grossScore !==
-            previousGross
-        ) {
-
-          place = index + 1;
+          previousGross =
+            row.grossScore;
 
         }
+      );
 
 
-        html += `
+      html += `
 
-          <tr>
+            </tbody>
 
-            <td class="position">
-              ${place}
-            </td>
+          </table>
 
-            <td>
-              ${escapeHtml(row.player)}
-            </td>
+        </div>
 
-            <td class="gross-score">
-              ${row.grossScore}
-            </td>
-
-            <td class="course-handicap">
-              ${row.courseHandicap}
-            </td>
-
-            <td class="net-score">
-              ${row.netScore}
-            </td>
-
-            <td>
-              ${escapeHtml(row.tee)}
-            </td>
-
-            <td>
-              ${formatDate(row.date)}
-            </td>
-
-          </tr>
-
-        `;
+      `;
 
 
-        previousNet =
-          row.netScore;
-
-        previousGross =
-          row.grossScore;
-
-      }
-    );
+      leaderboard.innerHTML =
+        html;
 
 
-    html += `
+      // --------------------------------
+      // SORT BUTTONS
+      // --------------------------------
 
-          </tbody>
+      document
+        .querySelectorAll(
+          ".sortable"
+        )
+        .forEach(header => {
 
-        </table>
+          header.addEventListener(
+            "click",
+            () => {
 
-      </div>
+              const key =
+                header.dataset.sort;
 
-    `;
+
+              if (
+                currentSort.key ===
+                key
+              ) {
+
+                currentSort.direction =
+                  currentSort.direction === "asc"
+                    ? "desc"
+                    : "asc";
+
+              } else {
+
+                currentSort.key =
+                  key;
+
+                currentSort.direction =
+                  "asc";
+
+              }
 
 
-    leaderboard.innerHTML =
-      html;
+              renderLeaderboard();
 
+            }
+          );
+
+        });
+
+    }
+
+
+    // Initial render
+    renderLeaderboard();
 
   } catch (error) {
 
@@ -498,14 +883,379 @@ async function loadRounds(courseId) {
       </p>`;
 
   }
+
 }
 
 
-// -------------------------
-// FORMAT DATE
-// -------------------------
+// --------------------------------
+// GET SORT VALUE
+// --------------------------------
 
-function formatDate(dateString) {
+function getSortValue(
+  row,
+  key
+) {
+
+  if (
+    key === "date"
+  ) {
+
+    return new Date(
+      row.date
+    ).getTime();
+
+  }
+
+
+  if (
+    key === "player"
+  ) {
+
+    return row.player
+      .toLowerCase();
+
+  }
+
+
+  if (
+    key === "place"
+  ) {
+
+    return 0;
+
+  }
+
+
+  if (
+    key.startsWith("hole")
+  ) {
+
+    const holeNumber =
+      Number(
+        key.replace(
+          "hole",
+          ""
+        )
+      );
+
+
+    return (
+      row.holeScores[
+        holeNumber
+      ] ?? 999
+    );
+
+  }
+
+
+  return row[key];
+
+}
+
+
+// --------------------------------
+// SORTABLE HEADER
+// --------------------------------
+
+function sortableHeader(
+  label,
+  key,
+  sortable = true,
+  extraClass = ""
+) {
+
+  if (!sortable) {
+
+    return `
+      <th
+        class="${extraClass}"
+      >
+        ${label}
+      </th>
+    `;
+
+  }
+
+
+  const arrow =
+    getCurrentArrow(key);
+
+
+  return `
+
+    <th
+      class="sortable ${extraClass}"
+      data-sort="${key}"
+    >
+      ${label}
+      <span class="sort-arrow">
+        ${arrow}
+      </span>
+    </th>
+
+  `;
+
+}
+
+
+// --------------------------------
+// HOLE HEADERS
+// --------------------------------
+
+function holeHeaders(
+  start,
+  end
+) {
+
+  let html = "";
+
+
+  for (
+    let holeNumber = start;
+    holeNumber <= end;
+    holeNumber++
+  ) {
+
+    html += `
+
+      <th
+        class="sortable"
+        data-sort="hole${holeNumber}"
+      >
+
+        ${holeNumber}
+
+      </th>
+
+    `;
+
+  }
+
+
+  return html;
+
+}
+
+
+// --------------------------------
+// CURRENT SORT ARROW
+// --------------------------------
+
+function getCurrentArrow(key) {
+
+  // The render function is recreated
+  // whenever sorting occurs, so we
+  // inspect the global state indirectly.
+
+  if (
+    window.currentSortKey === key
+  ) {
+
+    return window.currentSortDirection === "asc"
+      ? "▲"
+      : "▼";
+
+  }
+
+
+  return "↕";
+
+}
+
+
+// --------------------------------
+// RENDER HOLE CELL
+// --------------------------------
+
+function renderHoleCell(
+  row,
+  holeNumber,
+  holeMap
+) {
+
+  const score =
+    row.holeScores[
+      holeNumber
+    ];
+
+
+  const hole =
+    Object.values(
+      holeMap
+    ).find(
+      item =>
+        Number(item.hole_number) ===
+        holeNumber
+    );
+
+
+  if (
+    score === null ||
+    score === undefined
+  ) {
+
+    return `
+      <td class="hole-score">
+        -
+      </td>
+    `;
+
+  }
+
+
+  const par =
+    Number(hole.par);
+
+
+  const difference =
+    Number(score) -
+    par;
+
+
+  let className =
+    "score-symbol";
+
+
+  // --------------------------------
+  // EAGLE OR BETTER
+  // --------------------------------
+
+  if (
+    difference <= -2
+  ) {
+
+    className +=
+      " score-eagle";
+
+  }
+
+
+  // --------------------------------
+  // BIRDIE
+  // --------------------------------
+
+  else if (
+    difference === -1
+  ) {
+
+    className +=
+      " score-birdie";
+
+  }
+
+
+  // --------------------------------
+  // PAR
+  // --------------------------------
+
+  else if (
+    difference === 0
+  ) {
+
+    // Normal number
+
+  }
+
+
+  // --------------------------------
+  // BOGEY
+  // --------------------------------
+
+  else if (
+    difference === 1
+  ) {
+
+    className +=
+      " score-bogey";
+
+  }
+
+
+  // --------------------------------
+  // DOUBLE BOGEY
+  // --------------------------------
+
+  else if (
+    difference === 2
+  ) {
+
+    className +=
+      " score-double-bogey";
+
+  }
+
+
+  // --------------------------------
+  // TRIPLE BOGEY OR WORSE
+  // --------------------------------
+
+  else {
+
+    className +=
+      " score-triple-bogey";
+
+  }
+
+
+  return `
+
+    <td class="hole-score">
+
+      <span class="${className}">
+        ${score}
+      </span>
+
+    </td>
+
+  `;
+
+}
+
+
+// --------------------------------
+// FORMAT HANDICAP
+// --------------------------------
+
+function formatHandicap(
+  handicap
+) {
+
+  if (
+    handicap === null ||
+    handicap === undefined ||
+    isNaN(handicap)
+  ) {
+
+    return "-";
+
+  }
+
+
+  const number =
+    Number(handicap);
+
+
+  if (
+    Number.isInteger(number)
+  ) {
+
+    return number;
+
+  }
+
+
+  return number.toFixed(1);
+
+}
+
+
+// --------------------------------
+// FORMAT DATE
+// --------------------------------
+
+function formatDate(
+  dateString
+) {
 
   if (!dateString) {
     return "-";
@@ -526,14 +1276,17 @@ function formatDate(dateString) {
       year: "numeric"
     }
   );
+
 }
 
 
-// -------------------------
+// --------------------------------
 // ESCAPE HTML
-// -------------------------
+// --------------------------------
 
-function escapeHtml(value) {
+function escapeHtml(
+  value
+) {
 
   return String(value)
     .replace(
@@ -560,9 +1313,9 @@ function escapeHtml(value) {
 }
 
 
-// -------------------------
+// --------------------------------
 // COURSE BUTTONS
-// -------------------------
+// --------------------------------
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -609,13 +1362,20 @@ document.addEventListener(
     });
 
 
-    // Automatically load
-    // Newton Commonwealth
-    if (buttons.length > 0) {
+    // --------------------------------
+    // LOAD NEWTON BY DEFAULT
+    // --------------------------------
+
+    if (
+      buttons.length > 0
+    ) {
 
       buttons[0].click();
 
     }
+
+  }
+);
 
   }
 );
