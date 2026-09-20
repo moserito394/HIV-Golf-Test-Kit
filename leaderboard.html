@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Golf Leaderboard</title>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="leaderboard.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>🏆 Golf Leaderboard</h1>
+    <p>Track the tournament standings</p>
+  </header>
+
+  <main class="container">
+
+    <!-- COURSE SELECTOR -->
+    <div class="card">
+      <h2>Select Course</h2>
+
+      <div class="course-tabs">
+
+        <button
+          class="course-tab"
+          data-course-id="4"
+        >
+          Newton Commonwealth
+        </button>
+
+        <button
+          class="course-tab"
+          data-course-id="8"
+        >
+          Mount Hood
+        </button>
+
+        <button
+          class="course-tab"
+          data-course-id="9"
+        >
+          Green Harbor
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- LEADERBOARD -->
+    <div class="card">
+
+      <div id="leaderboardHeader">
+        <p>Select a course above.</p>
+      </div>
+
+      <div id="leaderboard">
+
+        <p>
+          Select a course to view the leaderboard.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- BACK TO SCORECARD -->
+    <div class="card">
+
+      <a
+        href="index.html"
+        class="back-button"
+      >
+        ← Enter Another Round
+      </a>
+
+    </div>
+
+  </main>
+
+  <script src="leaderboard.js"></script>
+
+</body>
+</html>
