@@ -1,0 +1,131 @@
+.course-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.course-tab {
+  width: 100%;
+  padding: 14px 10px;
+  background: #eef3ef;
+  color: #1f4d32;
+  border: 2px solid #d5ddd7;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.course-tab:hover {
+  background: #dfe9e1;
+}
+
+.course-tab.active {
+  background: #1f4d32;
+  color: white;
+  border-color: #1f4d32;
+}
+
+
+.leaderboard-title {
+  margin-bottom: 5px;
+}
+
+.leaderboard-subtitle {
+  color: #666;
+  margin-top: 0;
+}
+
+
+.leaderboard-table-wrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 650px;
+}
+
+
+.leaderboard-table th {
+  background: #1f4d32;
+  color: white;
+  padding: 12px 8px;
+  text-align: left;
+}
+
+
+.leaderboard-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+
+.leaderboard-table tr:nth-child(even) {
+  background: #f7f9f7;
+}
+
+
+.leaderboard-table tr:first-child td {
+  font-weight: bold;
+}
+
+
+.position {
+  font-weight: bold;
+  text-align: center;
+}
+
+
+.net-score {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+
+.gross-score,
+.course-handicap,
+.net-score {
+  text-align: center;
+}
+
+
+.loading {
+  text-align: center;
+  padding: 30px;
+}
+
+
+.no-rounds {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+}
+
+
+.back-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #1f4d32;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+
+.back-button:hover {
+  background: #163a26;
+}
+
+
+@media (max-width: 600px) {
+
+  .course-tabs {
+    grid-template-columns: 1fr;
+  }
+
+}
