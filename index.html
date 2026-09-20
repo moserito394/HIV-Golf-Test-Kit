@@ -18,11 +18,14 @@
 
   <main class="container">
 
-    <!-- PLAYER -->
+    <!-- PLAYER INFORMATION -->
     <div class="card">
+
       <h2>1. Player Information</h2>
 
-      <label for="playerName">Name</label>
+      <label for="playerName">
+        Name
+      </label>
 
       <input
         type="text"
@@ -30,7 +33,11 @@
         placeholder="Enter your name"
       >
 
-      <label for="handicap" class="field-label">
+
+      <label
+        for="handicap"
+        class="field-label"
+      >
         Handicap
       </label>
 
@@ -43,7 +50,11 @@
         placeholder="Enter your handicap"
       >
 
-      <label for="roundDate" class="field-label">
+
+      <label
+        for="roundDate"
+        class="field-label"
+      >
         Date of Round
       </label>
 
@@ -51,51 +62,87 @@
         type="date"
         id="roundDate"
       >
+
     </div>
+
 
     <!-- COURSE -->
     <div class="card">
+
       <h2>2. Select Your Course</h2>
 
-      <label for="course">Course</label>
+      <label for="course">
+        Course
+      </label>
 
       <select id="course">
-        <option value="">Loading courses...</option>
+
+        <option value="">
+          Loading courses...
+        </option>
+
       </select>
+
     </div>
+
 
     <!-- TEE -->
     <div class="card">
+
       <h2>3. Select Your Tee</h2>
 
-      <label for="tee">Tee</label>
+      <label for="tee">
+        Tee
+      </label>
 
       <select id="tee">
-        <option value="">Select a course first</option>
+
+        <option value="">
+          Select a course first
+        </option>
+
       </select>
+
     </div>
+
 
     <!-- SCORECARD -->
     <div class="card">
+
       <h2>4. Enter Your Scores</h2>
 
       <div id="scorecard">
+
         <p>
           Select a course and tee above to begin.
         </p>
+
       </div>
+
     </div>
+
 
     <!-- SUBMIT -->
     <div class="card">
+
       <button id="submitRound">
         Submit Round
       </button>
 
       <p id="submitMessage"></p>
+
+
+      <a
+        href="leaderboard.html"
+        class="leaderboard-link"
+      >
+        🏆 View Leaderboard
+      </a>
+
     </div>
 
   </main>
+
 
   <script src="app.js"></script>
 
