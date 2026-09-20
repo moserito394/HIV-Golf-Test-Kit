@@ -68,6 +68,48 @@ button:hover {
   background: #163a26;
 }
 
+.score-table {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.score-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr 1.5fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+.score-header {
+  font-weight: bold;
+  background: #eef3ef;
+  border-radius: 6px;
+}
+
+.score-input {
+  width: 80px;
+  padding: 8px;
+  text-align: center;
+}
+
+.score-total {
+  margin-top: 20px;
+  font-size: 20px;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .score-row {
+    grid-template-columns: 1fr 1fr 1.5fr 1.5fr;
+    font-size: 14px;
+  }
+
+  .score-input {
+    width: 65px;
+  }
+}
 h2 {
   margin-top: 0;
 }
