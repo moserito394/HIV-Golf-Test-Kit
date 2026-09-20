@@ -336,7 +336,9 @@ async function loadRounds(courseId) {
             holeScores[holeNumber];
 
           if (score !== null) {
+
             frontNine += score;
+
           }
 
         }
@@ -358,7 +360,9 @@ async function loadRounds(courseId) {
             holeScores[holeNumber];
 
           if (score !== null) {
+
             backNine += score;
+
           }
 
         }
@@ -468,13 +472,26 @@ async function loadRounds(courseId) {
     };
 
 
+    // Store current sort globally so
+    // the arrows can be displayed.
+
+    window.currentSortKey =
+      currentSort.key;
+
+    window.currentSortDirection =
+      currentSort.direction;
+
+
     // --------------------------------
     // RENDER FUNCTION
     // --------------------------------
 
     function renderLeaderboard() {
 
-      // Sort rows
+      // --------------------------------
+      // SORT ROWS
+      // --------------------------------
+
       leaderboardRows.sort(
         (a, b) => {
 
@@ -527,6 +544,7 @@ async function loadRounds(courseId) {
                   bString
                 );
 
+
               return currentSort.direction === "asc"
                 ? comparison
                 : -comparison;
@@ -563,8 +581,9 @@ async function loadRounds(courseId) {
           }
 
 
-          // Final tie-breaker:
-          // earlier date first.
+          // --------------------------------
+          // FINAL TIE BREAKER
+          // --------------------------------
 
           return (
             new Date(a.date) -
@@ -660,6 +679,10 @@ async function loadRounds(courseId) {
       `;
 
 
+      // --------------------------------
+      // PLACE NUMBERS
+      // --------------------------------
+
       let previousNet =
         null;
 
@@ -673,9 +696,8 @@ async function loadRounds(courseId) {
       leaderboardRows.forEach(
         (row, index) => {
 
-          // --------------------------------
-          // PLACE
-          // --------------------------------
+          // Identical net + gross =
+          // same place.
 
           if (
             row.netScore !==
@@ -767,7 +789,7 @@ async function loadRounds(courseId) {
 
 
           // --------------------------------
-          // BACK 9
+          // BACK 9 / GROSS / NET
           // --------------------------------
 
           html += `
@@ -855,6 +877,17 @@ async function loadRounds(courseId) {
               }
 
 
+              // Update global sort state
+
+              window.currentSortKey =
+                currentSort.key;
+
+              window.currentSortDirection =
+                currentSort.direction;
+
+
+              // Re-render table
+
               renderLeaderboard();
 
             }
@@ -865,7 +898,10 @@ async function loadRounds(courseId) {
     }
 
 
-    // Initial render
+    // --------------------------------
+    // INITIAL RENDER
+    // --------------------------------
+
     renderLeaderboard();
 
   } catch (error) {
@@ -896,6 +932,7 @@ function getSortValue(
   key
 ) {
 
+  // Date
   if (
     key === "date"
   ) {
@@ -907,6 +944,7 @@ function getSortValue(
   }
 
 
+  // Player
   if (
     key === "player"
   ) {
@@ -917,6 +955,7 @@ function getSortValue(
   }
 
 
+  // Place is not actually sortable
   if (
     key === "place"
   ) {
@@ -926,6 +965,7 @@ function getSortValue(
   }
 
 
+  // Individual hole
   if (
     key.startsWith("hole")
   ) {
@@ -988,9 +1028,11 @@ function sortableHeader(
       data-sort="${key}"
     >
       ${label}
+
       <span class="sort-arrow">
         ${arrow}
       </span>
+
     </th>
 
   `;
@@ -1025,6 +1067,12 @@ function holeHeaders(
 
         ${holeNumber}
 
+        <span class="sort-arrow">
+          ${getCurrentArrow(
+            `hole${holeNumber}`
+          )}
+        </span>
+
       </th>
 
     `;
@@ -1041,17 +1089,17 @@ function holeHeaders(
 // CURRENT SORT ARROW
 // --------------------------------
 
-function getCurrentArrow(key) {
-
-  // The render function is recreated
-  // whenever sorting occurs, so we
-  // inspect the global state indirectly.
+function getCurrentArrow(
+  key
+) {
 
   if (
-    window.currentSortKey === key
+    window.currentSortKey ===
+    key
   ) {
 
-    return window.currentSortDirection === "asc"
+    return window.currentSortDirection ===
+      "asc"
       ? "▲"
       : "▼";
 
@@ -1079,12 +1127,16 @@ function renderHoleCell(
     ];
 
 
+  // Find hole information
+
   const hole =
     Object.values(
       holeMap
     ).find(
       item =>
-        Number(item.hole_number) ===
+        Number(
+          item.hole_number
+        ) ===
         holeNumber
     );
 
@@ -1095,16 +1147,20 @@ function renderHoleCell(
   ) {
 
     return `
+
       <td class="hole-score">
         -
       </td>
+
     `;
 
   }
 
 
   const par =
-    Number(hole.par);
+    Number(
+      hole.par
+    );
 
 
   const difference =
@@ -1152,7 +1208,8 @@ function renderHoleCell(
     difference === 0
   ) {
 
-    // Normal number
+    // Normal number.
+    // No special styling.
 
   }
 
@@ -1201,7 +1258,9 @@ function renderHoleCell(
 
     <td class="hole-score">
 
-      <span class="${className}">
+      <span
+        class="${className}"
+      >
         ${score}
       </span>
 
@@ -1258,7 +1317,9 @@ function formatDate(
 ) {
 
   if (!dateString) {
+
     return "-";
+
   }
 
 
@@ -1334,6 +1395,7 @@ document.addEventListener(
         () => {
 
           // Remove active state
+
           buttons.forEach(
             otherButton => {
 
@@ -1346,12 +1408,14 @@ document.addEventListener(
 
 
           // Activate clicked button
+
           button.classList.add(
             "active"
           );
 
 
           // Load leaderboard
+
           loadRounds(
             button.dataset.courseId
           );
@@ -1373,9 +1437,6 @@ document.addEventListener(
       buttons[0].click();
 
     }
-
-  }
-);
 
   }
 );
