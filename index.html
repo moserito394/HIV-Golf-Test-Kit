@@ -18,6 +18,7 @@
 
   <main class="container">
 
+    <!-- PLAYER -->
     <div class="card">
       <h2>1. Your Name</h2>
 
@@ -31,6 +32,7 @@
     </div>
 
 
+    <!-- COURSE -->
     <div class="card">
       <h2>2. Select Your Course</h2>
 
@@ -42,6 +44,7 @@
     </div>
 
 
+    <!-- TEE -->
     <div class="card">
       <h2>3. Select Your Tee</h2>
 
@@ -53,15 +56,29 @@
     </div>
 
 
+    <!-- SCORECARD -->
     <div class="card">
+
       <h2>4. Enter Your Scores</h2>
 
-      <p>
-        Select your course and tee above to enter your
-        hole-by-hole scores.
-      </p>
+      <div id="scorecard">
+        <p>
+          Select a course and tee above to begin.
+        </p>
+      </div>
 
-      <div id="scorecard"></div>
+    </div>
+
+
+    <!-- SUBMIT -->
+    <div class="card">
+
+      <button id="submitRound">
+        Submit Round
+      </button>
+
+      <p id="submitMessage"></p>
+
     </div>
 
   </main>
