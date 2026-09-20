@@ -3,14 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Golf Scorecard</title>
+
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <h1>Golf Scorecard</h1>
+  <header>
+    <h1>⛳ Golf Scorecard</h1>
+    <p>Enter your round and track your score</p>
+  </header>
 
-  <p>Welcome to the golf scorecard.</p>
+  <main class="container">
+
+    <div class="card">
+      <h2>1. Your Name</h2>
+
+      <label for="playerName">Name</label>
+
+      <input
+        type="text"
+        id="playerName"
+        placeholder="Enter your name"
+      >
+    </div>
+
+
+    <div class="card">
+      <h2>2. Select Your Course</h2>
+
+      <label for="course">Course</label>
+
+      <select id="course">
+        <option value="">Loading courses...</option>
+      </select>
+    </div>
+
+
+    <div class="card">
+      <h2>3. Select Your Tee</h2>
+
+      <label for="tee">Tee</label>
+
+      <select id="tee">
+        <option value="">Select a course first</option>
+      </select>
+    </div>
+
+
+    <div class="card">
+      <h2>4. Enter Your Scores</h2>
+
+      <p>
+        Select your course and tee above to enter your
+        hole-by-hole scores.
+      </p>
+
+      <div id="scorecard"></div>
+    </div>
+
+  </main>
+
+  <script src="app.js"></script>
 
 </body>
 </html>
